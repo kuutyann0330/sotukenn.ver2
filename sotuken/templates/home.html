@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ホーム画面</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f9fa;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .user-id {
+      position: absolute;
+      top: 10px;
+      left: 20px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+    }
+
+    h1 {
+      font-size: 48px;
+      color: #333;
+      margin-bottom: 40px;
+    }
+
+    .delete-btn a {
+      text-decoration: none;
+      color: white;
+    }
+
+    .delete-btn {
+      padding: 12px 24px;
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .delete-btn:hover {
+      background-color: #b02a37;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 左上にユーザーID表示 -->
+  <div class="user-id">ID: {{ user_id }}</div>
+
+  <!-- 中央内容 -->
+  <div class="container">
+    <h1>Welcome {{ username }}</h1>
+    <button class="delete-btn">
+      <a href="/delete_confirm_page">アカウント削除</a>
+    </button>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>登録ページ</title>
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            text-align: center;
+            margin-top: 50px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            display: inline-block;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            text-align: left;
+            width: 450px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        /* フォーム送信ボタン */
+        #openModal {
+            padding: 12px 40px;
+            font-size: 1.1em;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto 0;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        #openModal:hover {
+            background-color: #1e7e34;
+        }
+
+        /* モーダル関連のスタイル */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.4); 
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .modal-content p {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .registration-details {
+            margin: 20px 0;
+            padding: 15px;
+            background: #eef;
+            border-radius: 5px;
+            text-align: left;
+        }
+        .registration-details p {
+            font-size: 1em;
+            font-weight: normal;
+            margin: 5px 0;
+            padding-left: 10px;
+        }
+        .modal-buttons button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+        }
+        #cancelBtn {
+            background-color: #f44336;
+            color: white;
+        }
+        #confirmBtn {
+            background-color: #007bff;
+            color: white;
+        }
+        /* アラート用メッセージ */
+        .alert-message {
+            color: red;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>新規ユーザー登録</h1>
+
+    <!-- Flaskからのメッセージを表示 -->
+    {% if message %}
+        <p class="alert-message">{{ message }}</p>
+    {% endif %}
+
+    <!-- フォーム (送信先は /register_page) -->
+    <form id="registerForm" action="/register_page" method="POST" enctype="multipart/form-data">
+        
+        <label for="face_file">顔認証用画像ファイル名:</label>
+        <!-- 実際にはファイルアップロードまたはカメラ撮影の処理が必要 -->
+        <input type="file" id="face_file" name="face_file" accept=".png,.jpg,.jpeg" multiple>
+
+        <label for="full_name">氏名:</label>
+        <input type="text" id="full_name" name="full_name" placeholder="山田 太郎">
+
+        <label for="password">パスワード:</label>
+        <input type="password" id="password" name="password" placeholder="セキュリティを考慮したパスワード">
+
+        <!-- フォーム送信をトリガーせず、モーダルを開くボタン -->
+        <button type="button" id="openModal">確認画面へ進む</button>
+    </form>
+
+    <!-- モーダル -->
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <p>以下の内容でよろしいですか？</p>
+        
+        <!-- 🔴 ここに登録内容を表示する 🔴 -->
+        <div class="registration-details">
+            <p><strong>氏名:</strong> <span id="modal_full_name"></span></p>
+            <p><strong>パスワード:</strong> <span id="modal_password"></span></p>
+            <p><strong>画像ファイル:</strong> <span id="modal_face_file"></span></p>
+        </div>
+        
+        <div class="modal-buttons">
+            <button id="confirmBtn">YES (確認画面へ)</button>
+            <button id="cancelBtn">NO (修正する)</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('modal');
+        const openModal = document.getElementById('openModal');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const confirmBtn = document.getElementById('confirmBtn');
+        const form = document.getElementById('registerForm');
+
+        // モーダル内の表示要素
+        const modalFullName = document.getElementById('modal_full_name');
+        const modalPassword = document.getElementById('modal_password');
+        const modalFaceFile = document.getElementById('modal_face_file');
+
+        // 登録ボタンを押すと全入力チェック → モーダル表示
+        openModal.onclick = () => {
+            const faceInput = document.getElementById('face_file');
+            const faceFile = faceInput.files.length;
+            const fullName = document.getElementById('full_name').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            let alertMsg = document.querySelector(".alert-message");
+            if (!alertMsg) {
+                alertMsg = document.createElement("p");
+                alertMsg.className = "alert-message";
+                form.prepend(alertMsg);
+            }
+
+            if (!faceFile || !fullName || !password) {
+                alertMsg.textContent = "全ての欄を入力してください。";
+                return;
+            }
+
+            // 🔴 入力内容をモーダル内の要素に反映
+            modalFullName.textContent = fullName;
+            // パスワードはそのまま表示せず、セキュリティのためマスクする（例: ******）
+            modalPassword.textContent = '****'; 
+            const files = document.getElementById("face_file").files;
+            modalFaceFile.textContent = Array.from(files).map(f => f.name).join(", ");;
+
+
+            modal.style.display = 'flex';
+        };
+
+        // キャンセルでモーダルを閉じる
+        cancelBtn.onclick = () => modal.style.display = 'none';
+
+        // OKでフォーム送信（/register_page ルートへPOST送信）
+        confirmBtn.onclick = () => form.submit();
+
+        // モーダル外クリックで閉じる
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        };
+    </script>
+</body>
+</html>
