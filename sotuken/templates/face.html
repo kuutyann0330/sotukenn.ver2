@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>顔認証ログイン</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f7f9fb; }
+        .camera-container {
+            max-width: 700px;
+            margin: 0 auto;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border: 2px solid #ddd;
+            background-color: #fff;
+        }
+        img#videoFeed {
+            width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen flex items-center justify-center">
+
+    <div class="camera-container p-6 rounded-xl">
+        <h1 class="text-3xl font-bold text-gray-800 mb-4 text-center">🔐 顔認証を開始</h1>
+        <!-- tolerance は Flask/Jinja2 から渡される変数です -->
+        <p class="text-center text-sm text-gray-500 mb-6">顔をカメラの枠内に映してください (許容誤差: {{ tolerance }})</p>
+
+        <!-- 映像ストリーム -->
+        <div class="aspect-video bg-gray-900 rounded-lg overflow-hidden flex items-center justify-center">
+            <img id="videoFeed" src="/video_feed" alt="Webカメラフィード" class="block">
+        </div>
+
+        <!-- ステータス表示 -->
+        <div id="statusMessage" class="mt-6 p-4 rounded-lg text-center font-semibold transition duration-300 bg-blue-100 text-blue-700">
+            認証待機中です...
+        </div>
+    </div>
+
+    <script>
+        const statusElement = document.getElementById('statusMessage');
+
+        // 1秒ごとに認証ステータスを確認するポーリング関数
+        function checkAuthStatus() {
+            // ⭐ 修正: window.location.origin を使って絶対URLを作成し、相対パスの解析エラーを回避します ⭐
+            fetch(window.location.origin + '/auth_status')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.status === 'authenticated' && data.redirect_url) {
+                        
+                        // 認証成功！リダイレクトを開始
+                        statusElement.classList.remove('bg-blue-100', 'text-blue-700');
+                        statusElement.classList.add('bg-green-100', 'text-green-700');
+                        statusElement.innerHTML = `✅ 認証成功: ${data.username}さん！ダッシュボードへ遷移します...`;
+                        
+                        // ポーリングを停止
+                        clearInterval(pollingInterval);
+                        
+                        
+                        // IDを取得してセッションに入れる
+                        //ユーザーのホームページに遷移する準備？
+                        
+
+
+
+                        // サーバーがストリームを停止する猶予を持たせるために少し遅延させて遷移
+                        setTimeout(() => {
+                            window.location.href = data.redirect_url;
+                        }, 500); // 0.5秒後にリダイレクト
+                        
+                    } else if (data.status === 'unauthenticated') {
+                        // 認証待機中または認識失敗
+                        statusElement.innerHTML = `認証待機中です...`;
+                        statusElement.classList.remove('bg-green-100', 'text-green-700');
+                        statusElement.classList.add('bg-blue-100', 'text-blue-700');
+
+                    }else if (data.status === 'failed') {
+                        // 認証待機中または認識失敗
+                        statusElement.classList.remove('bg-blue-100', 'text-blue-700');
+                        statusElement.classList.add('bg-green-100', 'text-green-700');
+                        statusElement.innerHTML = `認証失敗..ログインページに遷移します。`;
+                        // ポーリングを停止
+                        clearInterval(pollingInterval);
+                        setTimeout(() => {
+                            window.location.href = data.redirect_url;
+                        }, 500); // 0.5秒後にリダイレクト
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching auth status:', error);
+                    statusElement.classList.remove('bg-blue-100');
+                    statusElement.classList.add('bg-red-100', 'text-red-700');
+                    statusElement.innerHTML = '⚠️ サーバー接続エラー。コンソールを確認してください。';
+                });
+        }
+
+        // 1000ms (1秒) ごとにポーリングを実行
+        const pollingInterval = setInterval(checkAuthStatus, 1000);
+    </script>
+</body>
+</html>

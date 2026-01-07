@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>トップページ</title>
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            text-align: center;
+            margin-top: 200px; /* 全体の位置を少し下に */
+            background-color: #f9f9f9;
+        }
+        p {
+            font-size: 1.2em;
+        }
+        .button-container {
+            margin-top: 60px;
+        }
+        a.button {
+            display: inline-block;
+            width: 150px; /* ← ボタンの横幅を拡大 */
+            margin: 100px 125px; /* ボタン間の余白も広げる */
+            padding: 25px 0; /* ← 高さを拡大 */
+            background-color: #007bff;
+            color: white;
+            font-size: 1.2em; /* ← ボタン文字を大きく */
+            text-decoration: none;
+            border-radius: 8px;
+            transition: 0.2s;
+        }
+        a.button:hover {
+            background-color: #0056b3;
+        }
+        /* 登録ボタンだけ別カラー */
+        a.button.register {
+            background-color: #28a745;
+        }
+        a.button.register:hover {
+            background-color: #1e7e34;
+        }
+    </style>
+</head>
+<body>
+    <div class="button-container">
+        <a href="/face_page" class="button">ログイン</a>
+        <a href="/register_page" class="button register">登録</a>
+    </div>
+</body>
+</html>

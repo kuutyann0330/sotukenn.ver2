@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>登録内容確認</title>
+    <style>
+        body { font-family: "Segoe UI", sans-serif; text-align: center; margin-top: 50px; }
+        .data-box { display: inline-block; text-align: left; padding: 30px; background: #f9f9f9; border-radius: 10px; }
+        p { font-size: 1.1em; margin: 10px 0; }
+        a { display: inline-block; margin-top: 20px; text-decoration: none; color: #007bff; }
+        img { max-width: 200px; margin-bottom: 15px; display: block; }
+        select { width: 100%; margin-bottom: 10px; }
+    </style>
+
+    <script>
+        function showImage() {
+            const select = document.getElementById("faceSelect");
+            const img = document.getElementById("faceImage");
+            const filename = select.value;
+
+            if (filename) {
+                img.src = "/temp_image/" + filename;
+                img.style.display = "block";
+            } else {
+                img.style.display = "none";
+            }
+        }
+
+        // ページ表示時に最初の画像を表示
+        window.onload = function () {
+            showImage();
+        };
+    </script>
+</head>
+<body>
+
+<h1>登録内容の確認</h1>
+
+<div class="data-box">
+
+    <!-- 顔認証画像 -->
+    <p><strong>顔認証用画像:</strong></p>
+
+    <!-- 画像ファイル名リスト -->
+    <select id="faceSelect" onchange="showImage()">
+        {% for filename in data.face_file %}
+            <option value="{{ filename }}">{{ filename }}</option>
+        {% endfor %}
+    </select>
+
+    <!-- 選択した画像を表示 -->
+    <img id="faceImage" alt="顔認証用画像">
+
+    <!-- 氏名 -->
+    <p><strong>氏名:</strong> {{ data.full_name }}</p>
+
+    <!-- ID -->
+    <p><strong>ID:</strong> {{ data.id }}</p>
+
+</div>
+
+<br>
+
+<form action="/register_confirm" method="post">
+    <button type="submit">確定</button>
+</form>
+
+</body>
+</html>
