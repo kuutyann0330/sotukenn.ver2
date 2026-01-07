@@ -1,6 +1,8 @@
+# フォルダ内の画像を移動させる関数
 import os
 import shutil
 
+# app.py 159行目
 def move_upload_temp_to_user(user_id):
     # 移動元（upload_temp）
     src_dir = "upload_temp"

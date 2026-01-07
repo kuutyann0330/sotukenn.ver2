@@ -17,6 +17,7 @@ from logic import spl as db
 # ===============================
 # 定数
 # ===============================
+# 許容値
 TOLERANCE_THRESHOLD = 1
 FAIL_TIMEOUT = 3
 MAX_SUCCESS_FRAMES = 15
@@ -187,7 +188,6 @@ def generate_frames(auth_sid):
 def face_recognition_page():
     return render_template("Face_recognition.html")
 
-
 @face_auth_bp.route("/video_feed")
 def video_feed():
  # コンテキストが生きているここで session を操作する
@@ -219,7 +219,7 @@ def auth_status():
     # 認証成功時の処理
     if state.authenticated and state.success_frames >= MAX_SUCCESS_FRAMES:
         # ここは「リクエストコンテキスト内」なのでsessionが使える
-        user = db.get_user_by_name(state.username)
+        user = db.search_user(state.username)
         if user:
             session["user_id"] = user.id
             session["username"] = user.username
@@ -234,7 +234,7 @@ def auth_status():
         AUTH_STATES.pop(sid, None)
         return jsonify({
             "status": "failed",
-            "redirect_url": "/face_page" # 再試行のためにリダイレクト
+            "redirect_url": "/login_page" # 手打ちに遷移
         })
 
     return jsonify({"status": "unauthenticated"})
